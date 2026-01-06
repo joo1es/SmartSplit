@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppSettings } from '../types';
-import { Settings2, Zap, Ruler } from 'lucide-react';
+import { Settings2, Zap, Ruler, ScissorsLineDashed } from 'lucide-react';
 
 interface SettingsPanelProps {
   settings: AppSettings;
@@ -36,6 +36,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onChange
           className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-500"
         />
         <p className="text-xs text-slate-400">Higher values detect fainter lines.</p>
+      </div>
+
+      {/* Split Gap / Padding */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-600 font-medium flex items-center gap-1">
+            <ScissorsLineDashed size={14} /> Split Height
+          </span>
+          <span className="text-slate-700">{settings.splitGap}px</span>
+        </div>
+        <input 
+          type="range" 
+          min="0" 
+          max="50" 
+          step="1"
+          value={settings.splitGap} 
+          onChange={(e) => update('splitGap', parseInt(e.target.value))}
+          className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-500"
+        />
+        <p className="text-xs text-slate-400">Discard pixels around the cut to avoid artifacts.</p>
       </div>
 
       {/* Min Height */}

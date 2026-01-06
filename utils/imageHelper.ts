@@ -109,10 +109,12 @@ export const detectSplitPoints = (
 
 /**
  * Slice the original image into blobs based on cut points.
+ * @param gap - Total pixels to discard around each split point
  */
 export const sliceImage = async (
   img: HTMLImageElement,
-  splitPoints: number[]
+  splitPoints: number[],
+  gap: number = 0
 ): Promise<ImageSegment[]> => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -120,36 +122,55 @@ export const sliceImage = async (
   if (!ctx) return [];
 
   canvas.width = img.width;
-  // Sort points and add 0 and height if needed
-  const cuts = [0, ...splitPoints, img.height].sort((a, b) => a - b);
-  const uniqueCuts = Array.from(new Set(cuts));
-
+  
+  // Sort points
+  const sortedPoints = [...splitPoints].sort((a, b) => a - b);
   const segments: ImageSegment[] = [];
 
-  for (let i = 0; i < uniqueCuts.length - 1; i++) {
-    const startY = uniqueCuts[i];
-    const endY = uniqueCuts[i + 1];
-    const h = endY - startY;
+  const halfGap = gap / 2;
+  let currentY = 0;
 
-    if (h <= 0) continue;
+  for (let i = 0; i <= sortedPoints.length; i++) {
+    const isLast = i === sortedPoints.length;
+    
+    // The central point of the cut (or bottom of image)
+    const cutY = isLast ? img.height : sortedPoints[i];
+    
+    // Calculate the slice boundaries
+    // If it's the last segment, it goes to the bottom of the image (no gap at bottom)
+    // Otherwise, it stops halfGap before the cutY
+    const endY = isLast ? img.height : Math.floor(cutY - halfGap);
+    
+    // The height of this slice
+    const h = endY - currentY;
+    
+    if (h > 0) {
+      canvas.height = h;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw slice
+      // We draw from source Y = currentY
+      ctx.drawImage(img, 0, -currentY, img.width, img.height);
 
-    canvas.height = h;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw slice
-    ctx.drawImage(img, 0, -startY, img.width, img.height);
+      const blob = await new Promise<Blob | null>((resolve) => 
+        canvas.toBlob(resolve, 'image/jpeg', 0.95)
+      );
 
-    const blob = await new Promise<Blob | null>((resolve) => 
-      canvas.toBlob(resolve, 'image/jpeg', 0.95)
-    );
+      if (blob) {
+        segments.push({
+          id: uuid(),
+          blob,
+          url: URL.createObjectURL(blob),
+          height: h,
+          selected: true,
+        });
+      }
+    }
 
-    if (blob) {
-      segments.push({
-        id: uuid(),
-        blob,
-        url: URL.createObjectURL(blob),
-        height: h,
-        selected: true,
-      });
+    // Advance currentY for the next segment
+    // Skip the gap area: start the next segment at cutY + halfGap
+    if (!isLast) {
+      currentY = Math.floor(cutY + halfGap);
     }
   }
 

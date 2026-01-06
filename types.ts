@@ -21,4 +21,5 @@ export interface AppSettings {
   sensitivity: number; // 1-100
   fastMode: boolean; // Downscale for calculation
   minSegmentHeight: number; // Minimum pixel height to consider a valid segment
+  splitGap: number; // Height of pixels to discard at split point (padding)
 }

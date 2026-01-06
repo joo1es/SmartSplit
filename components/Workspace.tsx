@@ -38,7 +38,8 @@ export const Workspace: React.FC<WorkspaceProps> = ({
     const relativeY = (e.clientY - rect.top) / zoom;
     
     // Check if clicking near an existing point to remove it
-    const clickThreshold = 10 / zoom;
+    // Increase threshold to make it easier to click
+    const clickThreshold = Math.max(10, settings.splitGap / 2 + 5) / zoom;
     const existingIndex = image.splitPoints.findIndex(p => Math.abs(p - relativeY) < clickThreshold);
 
     let newPoints = [...image.splitPoints];
@@ -111,10 +112,19 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             {image.splitPoints.map((y, i) => (
               <div 
                 key={y}
-                className="absolute left-0 w-full h-0 border-t-2 border-red-500 z-10 hover:border-4 transition-all pointer-events-none group"
-                style={{ top: y * zoom }}
+                className="absolute left-0 w-full z-10 pointer-events-none group"
+                style={{ 
+                    top: (y - (settings.splitGap / 2)) * zoom,
+                    height: Math.max(2, settings.splitGap) * zoom, 
+                }}
               >
-                <div className="absolute right-0 -top-3 bg-red-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100">
+                {/* The visual cut area - if gap is 0, just a line. If gap > 0, a transparent box */}
+                <div 
+                    className={`w-full h-full ${settings.splitGap > 0 ? 'bg-red-500/30 border-y border-red-500/50' : 'border-t-2 border-red-500 shadow-sm'}`}
+                ></div>
+
+                {/* Number Badge */}
+                <div className="absolute right-0 -top-4 bg-red-500 text-white text-[10px] px-1 rounded opacity-0 group-hover:opacity-100">
                    Cut #{i+1}
                 </div>
               </div>
@@ -132,7 +142,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
       
       {/* Help Text */}
       <div className="bg-white px-4 py-2 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
-         <span className="flex items-center gap-1"><AlertCircle size={12}/> Click on image to add manual cut points. Click existing red lines to remove them.</span>
+         <span className="flex items-center gap-1"><AlertCircle size={12}/> Click to add cut. Click existing cut area to remove.</span>
          <span>Dimensions: {image.width} x {image.height}px</span>
       </div>
     </div>

@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   sensitivity: 50,
   fastMode: true,
   minSegmentHeight: 100, // 100px min
+  splitGap: 0,
 };
 
 export default function App() {
@@ -111,7 +112,8 @@ export default function App() {
     imgEl.src = target.originalUrl;
     await new Promise(r => imgEl.onload = r);
 
-    const segments = await sliceImage(imgEl, target.splitPoints);
+    // Pass the splitGap settings to sliceImage
+    const segments = await sliceImage(imgEl, target.splitPoints, settings.splitGap);
     
     setImages(prev => prev.map(img => 
       img.id === id ? { ...img, segments, status: 'done' } : img
