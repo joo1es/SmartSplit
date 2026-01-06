@@ -1,0 +1,5 @@
+{
+  "name": "SmartSplit - Intelligent Image Slicer",
+  "description": "A powerful, client-side tool to automatically segment long screenshots (Weibo/WeChat) using variance-based algorithms. Supports batch processing, manual adjustments, and ZIP downloads.",
+  "requestFramePermissions": []
+}
